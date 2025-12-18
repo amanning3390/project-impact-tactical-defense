@@ -18,7 +18,10 @@ All contracts compile without errors using Hardhat with viaIR enabled.
 
 Create a `.env` file (or export in shell):
 ```bash
-export PRIVATE_KEY=your_deployer_private_key
+# For Hardhat deployment (standard Ethereum private key)
+export PRIVATE_KEY=your_deployer_private_key_0x...
+
+# Base network configuration
 export BASE_RPC_URL=https://mainnet.base.org
 export BASESCAN_API_KEY=your_basescan_api_key
 export DEV_WALLET=0x...your_dev_wallet_address
@@ -27,7 +30,13 @@ export DEV_WALLET=0x...your_dev_wallet_address
 export VRF_COORDINATOR=0x...base_mainnet_coordinator
 export VRF_KEY_HASH=0x...base_mainnet_key_hash
 export VRF_SUBSCRIPTION_ID=your_subscription_id
+
+# Coinbase Developer Platform Wallet Secret (for CDP SDK)
+# Note: This is NOT a standard private key - see WALLET_SECRET.md
+export COINBASE_WALLET_SECRET=your_wallet_secret
 ```
+
+**Important:** The `COINBASE_WALLET_SECRET` is for CDP Server Wallet API authentication, not for Hardhat deployment. For Hardhat, you need a separate standard Ethereum `PRIVATE_KEY`. See `WALLET_SECRET.md` for details.
 
 ### 2. Deploy Contracts
 
@@ -63,6 +72,7 @@ See `CONTRACT_SUMMARY.md` for detailed contract information.
 - `DEPLOYMENT_CHECKLIST.md` - Pre-deployment checklist
 - `VRF_CONFIG.md` - Chainlink VRF configuration guide
 - `CONTRACT_SUMMARY.md` - Contract details and fixes
+- `WALLET_SECRET.md` - Coinbase Developer Platform Wallet Secret usage guide
 
 ## Important Notes
 
