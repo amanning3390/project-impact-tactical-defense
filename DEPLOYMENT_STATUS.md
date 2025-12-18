@@ -12,8 +12,9 @@ Last Updated: $(date)
 
 ### Contracts
 - ✅ All contracts fixed and ready
-- ✅ Contracts compile successfully with Hardhat
+- ✅ Contracts compile successfully with **Foundry** (resolves stack too deep errors)
 - ✅ Deployment script updated to use owner wallet
+- ✅ Foundry configuration set up (`foundry.toml`)
 
 ### Scripts
 - ✅ `create-owner-wallet.js` - Create CDP Server Wallet
