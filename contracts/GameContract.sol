@@ -192,50 +192,12 @@ contract GameContract is VRFConsumerBaseV2, Ownable, Pausable {
         uint8 winningZ = dailyCycles[day].winningZ;
         
         // Calculate allocations
-        uint256 jackpotAmount = (dailyCycles[day].totalEntryFees * 90) / 100; // 90% to jackpot
-        uint256 devRake = (dailyCycles[day].totalEntryFees * 8) / 100; // 8% to dev
+        uint256 totalFees = dailyCycles[day].totalEntryFees;
+        uint256 jackpotAmount = (totalFees * 90) / 100; // 90% to jackpot
+        uint256 devRake = (totalFees * 8) / 100; // 8% to dev
         
-        // Collect all direct hits (3/3 matches) and deflections (2/3 matches)
-        // We need to iterate through all batteries to find matches
-        // Note: We'll need to track battery count differently or use a different approach
-        // For now, we'll iterate through a reasonable maximum
-        uint256 maxBatteries = 1000; // Reasonable maximum for gas efficiency
-        address[] memory directHits = new address[](dailyCycles[day].totalParticipants);
-        address[] memory deflections = new address[](dailyCycles[day].totalParticipants);
-        uint256 directHitCount = 0;
-        uint256 deflectionCount = 0;
-        
-        // Iterate through batteries for this day
-        // We'll check up to maxBatteries, stopping when we find empty batteries
-        for (uint256 batteryId = 0; batteryId < maxBatteries; batteryId++) {
-            (uint256 memberCount, ) = batteryContract.getBatteryInfo(day, batteryId);
-            if (memberCount == 0) break; // No more batteries
-            
-            address[10] memory members = batteryContract.getBatteryMembers(day, batteryId);
-            
-            // Check each member in the battery
-            for (uint256 i = 0; i < memberCount; i++) {
-                address player = members[i];
-                if (player == address(0)) continue; // Skip empty slots
-                
-                Submission memory sub = submissions[day][player];
-                if (sub.player == address(0)) continue; // No submission
-                
-                // Count matches
-                uint8 matches = 0;
-                if (sub.x == winningX) matches++;
-                if (sub.y == winningY) matches++;
-                if (sub.z == winningZ) matches++;
-                
-                if (matches == 3) {
-                    directHits[directHitCount] = player;
-                    directHitCount++;
-                } else if (matches == 2) {
-                    deflections[deflectionCount] = player;
-                    deflectionCount++;
-                }
-            }
-        }
+        // Collect matches
+        (address[] memory directHits, address[] memory deflections) = collectMatches(day, winningX, winningY, winningZ);
         
         // Transfer dev rake
         if (devRake > 0) {
@@ -243,20 +205,83 @@ contract GameContract is VRFConsumerBaseV2, Ownable, Pausable {
         }
         
         // Distribute jackpot to direct hits (split among all 3/3 matches)
-        if (directHitCount > 0 && jackpotAmount > 0) {
-            uint256 sharePerWinner = jackpotAmount / directHitCount;
-            for (uint256 i = 0; i < directHitCount; i++) {
+        if (directHits.length > 0 && jackpotAmount > 0) {
+            uint256 sharePerWinner = jackpotAmount / directHits.length;
+            for (uint256 i = 0; i < directHits.length; i++) {
                 impactToken.transfer(directHits[i], sharePerWinner);
             }
         }
         
         // Mint vouchers for deflections
-        for (uint256 i = 0; i < deflectionCount; i++) {
+        for (uint256 i = 0; i < deflections.length; i++) {
             hasVoucher[deflections[i]] = true;
             emit VoucherMinted(deflections[i], day);
         }
         
         emit RewardsDistributed(day, directHits, jackpotAmount);
+    }
+    
+    function collectMatches(uint256 day, uint8 winningX, uint8 winningY, uint8 winningZ) 
+        internal 
+        view 
+        returns (address[] memory directHits, address[] memory deflections) 
+    {
+        uint256 maxParticipants = dailyCycles[day].totalParticipants;
+        address[] memory tempDirectHits = new address[](maxParticipants);
+        address[] memory tempDeflections = new address[](maxParticipants);
+        uint256 directHitCount = 0;
+        uint256 deflectionCount = 0;
+        
+        uint256 maxBatteries = 1000;
+        for (uint256 batteryId = 0; batteryId < maxBatteries; batteryId++) {
+            (uint256 memberCount, ) = batteryContract.getBatteryInfo(day, batteryId);
+            if (memberCount == 0) break;
+            
+            address[10] memory members = batteryContract.getBatteryMembers(day, batteryId);
+            
+            for (uint256 i = 0; i < memberCount; i++) {
+                address player = members[i];
+                if (player == address(0)) continue;
+                
+                Submission memory sub = submissions[day][player];
+                if (sub.player == address(0)) continue;
+                
+                uint8 matches = 0;
+                if (sub.x == winningX) matches++;
+                if (sub.y == winningY) matches++;
+                if (sub.z == winningZ) matches++;
+                
+                if (matches == 3) {
+                    tempDirectHits[directHitCount] = player;
+                    directHitCount++;
+                } else if (matches == 2) {
+                    tempDeflections[deflectionCount] = player;
+                    deflectionCount++;
+                }
+            }
+        }
+        
+        // Resize arrays to actual counts
+        directHits = new address[](directHitCount);
+        deflections = new address[](deflectionCount);
+        for (uint256 i = 0; i < directHitCount; i++) {
+            directHits[i] = tempDirectHits[i];
+        }
+        for (uint256 i = 0; i < deflectionCount; i++) {
+            deflections[i] = tempDeflections[i];
+        }
+    }
+    
+    function countMatches(Submission memory sub, uint8 winningX, uint8 winningY, uint8 winningZ) 
+        internal 
+        pure 
+        returns (uint8) 
+    {
+        uint8 matches = 0;
+        if (sub.x == winningX) matches++;
+        if (sub.y == winningY) matches++;
+        if (sub.z == winningZ) matches++;
+        return matches;
     }
     
     function resetDailyCycle() external {

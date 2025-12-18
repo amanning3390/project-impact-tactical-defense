@@ -11,7 +11,8 @@
     "deploy:sepolia": "hardhat run scripts/deploy.js --network baseSepolia",
     "deploy:mainnet": "hardhat run scripts/deploy.js --network base",
     "verify": "node scripts/verify.js",
-    "create-owner-wallet": "node scripts/create-owner-wallet.js"
+    "create-owner-wallet": "node scripts/create-owner-wallet.js",
+    "check-readiness": "node scripts/check-deployment-readiness.js"
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.40.1",

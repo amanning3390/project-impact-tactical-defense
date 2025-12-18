@@ -7,9 +7,8 @@ module.exports = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 1000, // Higher runs for better optimization with viaIR
+        runs: 200,
       },
-      viaIR: true, // Enable IR-based compilation to avoid "stack too deep" errors
     },
   },
   networks: {
@@ -29,3 +28,4 @@ module.exports = {
     },
   },
 };
+
