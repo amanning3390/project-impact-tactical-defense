@@ -43,7 +43,10 @@ npx hardhat verify --network base <CONTRACT_ADDRESS> <CONSTRUCTOR_ARGS>
 3. Set sponsorship limits:
    - Per-user limit
    - Global monthly limit ($15k default)
-4. Copy Paymaster service URL to environment variables
+4. Copy Paymaster service URL to environment variables:
+   ```
+   NEXT_PUBLIC_PAYMASTER_URL=https://api.developer.coinbase.com/rpc/v1/base/YOUR_API_KEY
+   ```
 
 ## Step 4: Deploy to Vercel
 
