@@ -1,0 +1,34 @@
+{
+  "name": "project-impact---tactical-defense",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@coinbase/onchainkit": "^1.1.2",
+    "@farcaster/miniapp-sdk": "^0.2.1",
+    "@tanstack/react-query": "^5.90.12",
+    "@types/node": "^25.0.3",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "next": "^15.5.9",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "typescript": "^5.9.3",
+    "viem": "^2.43.2",
+    "wagmi": "^2.19.5"
+  },
+  "devDependencies": {
+    "@chainlink/contracts": "^1.5.0",
+    "@nomicfoundation/hardhat-toolbox": "^6.1.0",
+    "@openzeppelin/contracts": "^5.4.0",
+    "autoprefixer": "^10.4.23",
+    "hardhat": "^3.1.0",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^4.1.18"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/daily-drawing",
+      "schedule": "0 21 * * *"
+    }
+  ]
+}
+
