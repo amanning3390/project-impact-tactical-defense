@@ -15,6 +15,8 @@ async function main() {
   const VRF_KEY_HASH = process.env.VRF_KEY_HASH || "";
   const VRF_SUBSCRIPTION_ID = process.env.VRF_SUBSCRIPTION_ID || "0";
   const DEV_WALLET = process.env.DEV_WALLET || deployer.address;
+  // Use CDP Server Wallet as owner if specified, otherwise use deployer
+  const OWNER_WALLET = process.env.OWNER_WALLET_ADDRESS || deployer.address;
 
   if (!VRF_COORDINATOR || !VRF_KEY_HASH) {
     console.error("ERROR: VRF_COORDINATOR and VRF_KEY_HASH must be set in environment variables");
@@ -26,15 +28,20 @@ async function main() {
   console.log("VRF Key Hash:", VRF_KEY_HASH);
   console.log("VRF Subscription ID:", VRF_SUBSCRIPTION_ID);
   console.log("Dev Wallet:", DEV_WALLET);
-  console.log("Owner:", deployer.address);
+  console.log("Deployer:", deployer.address);
+  console.log("Owner Wallet:", OWNER_WALLET);
+  if (OWNER_WALLET !== deployer.address) {
+    console.log("  ⚠️  Note: Owner is different from deployer (CDP Server Wallet)");
+  }
 
   // Step 1: Deploy ImpactToken
   console.log("\n=== Step 1: Deploying ImpactToken ===");
   const ImpactToken = await ethers.getContractFactory("ImpactToken");
-  const impactToken = await ImpactToken.deploy(deployer.address);
+  const impactToken = await ImpactToken.deploy(OWNER_WALLET);
   await impactToken.waitForDeployment();
   const impactTokenAddress = await impactToken.getAddress();
   console.log("ImpactToken deployed to:", impactTokenAddress);
+  console.log("ImpactToken owner:", OWNER_WALLET);
 
   // Step 2: Deploy BatteryContract
   console.log("\n=== Step 2: Deploying BatteryContract ===");
@@ -54,11 +61,12 @@ async function main() {
     impactTokenAddress,
     batteryContractAddress,
     DEV_WALLET,
-    deployer.address // owner
+    OWNER_WALLET // owner (CDP Server Wallet)
   );
   await gameContract.waitForDeployment();
   const gameContractAddress = await gameContract.getAddress();
   console.log("GameContract deployed to:", gameContractAddress);
+  console.log("GameContract owner:", OWNER_WALLET);
 
   // Step 4: Configure ImpactToken
   console.log("\n=== Step 4: Configuring ImpactToken ===");
@@ -77,9 +85,9 @@ async function main() {
   console.log("GameContract:", gameContractAddress);
   console.log("\n=== Next Steps ===");
   console.log("1. Verify contracts on BaseScan:");
-  console.log(`   npx hardhat verify --network base ${impactTokenAddress} "${deployer.address}"`);
+  console.log(`   npx hardhat verify --network base ${impactTokenAddress} "${OWNER_WALLET}"`);
   console.log(`   npx hardhat verify --network base ${batteryContractAddress}`);
-  console.log(`   npx hardhat verify --network base ${gameContractAddress} "${VRF_COORDINATOR}" "${VRF_KEY_HASH}" "${VRF_SUBSCRIPTION_ID}" "${impactTokenAddress}" "${batteryContractAddress}" "${DEV_WALLET}" "${deployer.address}"`);
+  console.log(`   npx hardhat verify --network base ${gameContractAddress} "${VRF_COORDINATOR}" "${VRF_KEY_HASH}" "${VRF_SUBSCRIPTION_ID}" "${impactTokenAddress}" "${batteryContractAddress}" "${DEV_WALLET}" "${OWNER_WALLET}"`);
   console.log("\n2. Add GameContract as VRF consumer in Chainlink VRF portal");
   console.log("\n3. Update environment variables with contract addresses");
   console.log("\n4. Transfer initial token supply to game contract or distribute as needed");
@@ -89,6 +97,7 @@ async function main() {
     network: network.name,
     chainId: network.chainId.toString(),
     deployer: deployer.address,
+    owner: OWNER_WALLET,
     contracts: {
       ImpactToken: impactTokenAddress,
       BatteryContract: batteryContractAddress,

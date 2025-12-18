@@ -1,0 +1,7 @@
+{
+  "address": "0x6a1b085645674fF5E3eB853046cD51de16CAa1D0",
+  "network": "base-mainnet",
+  "createdAt": "2025-12-18T21:39:11.578Z",
+  "purpose": "Contract owner wallet",
+  "note": "This wallet will be used as the owner for ImpactToken, GameContract, and other contracts"
+}

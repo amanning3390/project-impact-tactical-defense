@@ -10,15 +10,18 @@
     "compile": "hardhat compile",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network baseSepolia",
     "deploy:mainnet": "hardhat run scripts/deploy.js --network base",
-    "verify": "node scripts/verify.js"
+    "verify": "node scripts/verify.js",
+    "create-owner-wallet": "node scripts/create-owner-wallet.js"
   },
   "dependencies": {
+    "@coinbase/cdp-sdk": "^1.40.1",
     "@coinbase/onchainkit": "^1.1.2",
     "@farcaster/miniapp-sdk": "^0.2.1",
     "@tanstack/react-query": "^5.90.12",
     "@types/node": "^25.0.3",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
+    "dotenv": "^17.2.3",
     "next": "^15.5.9",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
