@@ -37,3 +37,8 @@ next-env.d.ts
 cache
 artifacts
 
+# foundry
+out
+lib
+cache_forge
+
