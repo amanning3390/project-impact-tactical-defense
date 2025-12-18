@@ -3,10 +3,12 @@ pragma solidity ^0.8.20;
 
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@chainlink/contracts/src/v0.8/vrf/interfaces/VRFCoordinatorV2Interface.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "./ImpactToken.sol";
 import "./BatteryContract.sol";
 
-contract GameContract is VRFConsumerBaseV2 {
+contract GameContract is VRFConsumerBaseV2, Ownable, Pausable {
     VRFCoordinatorV2Interface COORDINATOR;
     ImpactToken public impactToken;
     BatteryContract public batteryContract;
@@ -14,6 +16,23 @@ contract GameContract is VRFConsumerBaseV2 {
     uint64 public subscriptionId;
     bytes32 public keyHash;
     uint32 public callbackGasLimit = 100000;
+    
+    // Admin functions
+    function setDevWallet(address _devWallet) external onlyOwner {
+        devWallet = _devWallet;
+    }
+    
+    function setCallbackGasLimit(uint32 _callbackGasLimit) external onlyOwner {
+        callbackGasLimit = _callbackGasLimit;
+    }
+    
+    function pause() external onlyOwner {
+        _pause();
+    }
+    
+    function unpause() external onlyOwner {
+        _unpause();
+    }
     
     struct Submission {
         address player;
@@ -57,8 +76,9 @@ contract GameContract is VRFConsumerBaseV2 {
         uint64 _subscriptionId,
         address _impactToken,
         address _batteryContract,
-        address _devWallet
-    ) VRFConsumerBaseV2(_vrfCoordinator) {
+        address _devWallet,
+        address _owner
+    ) VRFConsumerBaseV2(_vrfCoordinator) Ownable(_owner) {
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         keyHash = _keyHash;
         subscriptionId = _subscriptionId;
@@ -68,7 +88,7 @@ contract GameContract is VRFConsumerBaseV2 {
         currentDay = block.timestamp / 1 days;
     }
     
-    function submitCoordinates(uint8 x, uint8 y, uint8 z) external {
+    function submitCoordinates(uint8 x, uint8 y, uint8 z) external whenNotPaused {
         require(x <= 10 && y <= 10 && z <= 10, "Coordinates must be 0-10");
         require(impactToken.balanceOf(msg.sender) >= ENTRY_FEE, "Insufficient IMPACT");
         
@@ -102,7 +122,7 @@ contract GameContract is VRFConsumerBaseV2 {
         emit CoordinatesSubmitted(msg.sender, x, y, z, batteryId);
     }
     
-    function lockTargeting() external {
+    function lockTargeting() external whenNotPaused {
         uint256 day = block.timestamp / 1 days;
         uint256 currentHour = (block.timestamp % 1 days) / 1 hours;
         require(currentHour >= 21, "Too early to lock");
@@ -117,13 +137,13 @@ contract GameContract is VRFConsumerBaseV2 {
         uint256 burnAmount = (dailyCycles[day].totalEntryFees * burnRateBasisPoints) / 10000;
         
         if (burnAmount > 0) {
-            impactToken.burnFromGameContract(burnAmount);
+            impactToken.burn(burnAmount);
         }
         
         emit TargetingLocked(day, participantCount, burnAmount);
     }
     
-    function requestWinningCoordinates() external {
+    function requestWinningCoordinates() external whenNotPaused {
         uint256 day = block.timestamp / 1 days;
         require(dailyCycles[day].lockTime > 0, "Targeting not locked");
         require(dailyCycles[day].strikeTime == 0, "Already requested");
@@ -142,7 +162,7 @@ contract GameContract is VRFConsumerBaseV2 {
         );
     }
     
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+    function fulfillRandomWords(uint256 /* requestId */, uint256[] memory randomWords) internal override {
         uint256 day = block.timestamp / 1 days;
         
         // Convert random numbers to coordinates (0-10)
@@ -171,30 +191,62 @@ contract GameContract is VRFConsumerBaseV2 {
         uint8 winningY = dailyCycles[day].winningY;
         uint8 winningZ = dailyCycles[day].winningZ;
         
-        // Find all 3/3 matches (direct hits)
-        address[] memory directHits;
-        uint256 directHitCount = 0;
-        
-        // Find all 2/3 matches (deflections)
-        address[] memory deflections;
-        uint256 deflectionCount = 0;
-        
-        // This is simplified - in production, you'd iterate through all submissions
-        // For now, we'll use a mapping to track matches
-        
+        // Calculate allocations
         uint256 jackpotAmount = (dailyCycles[day].totalEntryFees * 90) / 100; // 90% to jackpot
         uint256 devRake = (dailyCycles[day].totalEntryFees * 8) / 100; // 8% to dev
         
-        // Transfer dev rake
-        if (devRake > 0) {
-            impactToken.transferFromGameContract(devWallet, devRake);
+        // Collect all direct hits (3/3 matches) and deflections (2/3 matches)
+        // We need to iterate through all batteries to find matches
+        // Note: We'll need to track battery count differently or use a different approach
+        // For now, we'll iterate through a reasonable maximum
+        uint256 maxBatteries = 1000; // Reasonable maximum for gas efficiency
+        address[] memory directHits = new address[](dailyCycles[day].totalParticipants);
+        address[] memory deflections = new address[](dailyCycles[day].totalParticipants);
+        uint256 directHitCount = 0;
+        uint256 deflectionCount = 0;
+        
+        // Iterate through batteries for this day
+        // We'll check up to maxBatteries, stopping when we find empty batteries
+        for (uint256 batteryId = 0; batteryId < maxBatteries; batteryId++) {
+            (uint256 memberCount, ) = batteryContract.getBatteryInfo(day, batteryId);
+            if (memberCount == 0) break; // No more batteries
+            
+            address[10] memory members = batteryContract.getBatteryMembers(day, batteryId);
+            
+            // Check each member in the battery
+            for (uint256 i = 0; i < memberCount; i++) {
+                address player = members[i];
+                if (player == address(0)) continue; // Skip empty slots
+                
+                Submission memory sub = submissions[day][player];
+                if (sub.player == address(0)) continue; // No submission
+                
+                // Count matches
+                uint8 matches = 0;
+                if (sub.x == winningX) matches++;
+                if (sub.y == winningY) matches++;
+                if (sub.z == winningZ) matches++;
+                
+                if (matches == 3) {
+                    directHits[directHitCount] = player;
+                    directHitCount++;
+                } else if (matches == 2) {
+                    deflections[deflectionCount] = player;
+                    deflectionCount++;
+                }
+            }
         }
         
-        // Distribute jackpot to direct hits (simplified - would need battery logic)
+        // Transfer dev rake
+        if (devRake > 0) {
+            impactToken.transfer(devWallet, devRake);
+        }
+        
+        // Distribute jackpot to direct hits (split among all 3/3 matches)
         if (directHitCount > 0 && jackpotAmount > 0) {
             uint256 sharePerWinner = jackpotAmount / directHitCount;
             for (uint256 i = 0; i < directHitCount; i++) {
-                impactToken.transferFromGameContract(directHits[i], sharePerWinner);
+                impactToken.transfer(directHits[i], sharePerWinner);
             }
         }
         

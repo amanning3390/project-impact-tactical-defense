@@ -12,14 +12,16 @@ contract BatteryContract {
     mapping(uint256 => mapping(uint256 => Battery)) public batteries; // day => batteryId => Battery
     mapping(uint256 => uint256) public batteryCount; // day => count
     mapping(uint256 => mapping(address => uint256)) public playerBattery; // day => player => batteryId
+    mapping(uint256 => mapping(address => bool)) public hasSubmitted; // day => player => has submitted
     
     uint256 public constant BATTERY_SIZE = 10;
+    uint256 private constant SENTINEL = type(uint256).max; // Use max uint as sentinel value
     
     event BatteryAssigned(uint256 indexed day, uint256 indexed batteryId, address indexed player);
     event BatteryFull(uint256 indexed day, uint256 indexed batteryId);
     
     function assignToBattery(address player, uint256 day) external returns (uint256) {
-        require(playerBattery[day][player] == 0, "Already in a battery");
+        require(!hasSubmitted[day][player], "Already in a battery");
         
         uint256 currentBatteryCount = batteryCount[day];
         Battery storage currentBattery;
@@ -32,6 +34,7 @@ contract BatteryContract {
                 currentBattery.members[currentBattery.memberCount] = player;
                 currentBattery.memberCount++;
                 playerBattery[day][player] = currentBatteryCount - 1;
+                hasSubmitted[day][player] = true;
                 
                 if (currentBattery.memberCount == BATTERY_SIZE) {
                     currentBattery.isFull = true;
@@ -51,6 +54,7 @@ contract BatteryContract {
         newBattery.isFull = false;
         
         playerBattery[day][player] = currentBatteryCount;
+        hasSubmitted[day][player] = true;
         batteryCount[day] = currentBatteryCount + 1;
         
         emit BatteryAssigned(day, currentBatteryCount, player);

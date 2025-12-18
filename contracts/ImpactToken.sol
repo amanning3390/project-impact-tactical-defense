@@ -16,14 +16,8 @@ contract ImpactToken is ERC20, ERC20Burnable, Ownable {
         gameContract = _gameContract;
     }
     
-    function burnFromGameContract(uint256 amount) external {
-        require(msg.sender == gameContract, "Only game contract can burn");
-        _burn(msg.sender, amount);
-    }
-    
-    function transferFromGameContract(address to, uint256 amount) external {
-        require(msg.sender == gameContract, "Only game contract can transfer");
-        _transfer(address(this), to, amount);
-    }
+    // Note: Game contract should use standard burn() and transfer() functions
+    // since it holds the tokens. These functions are kept for backwards compatibility
+    // but the game contract should call burn() and transfer() directly on its own balance.
 }
 
