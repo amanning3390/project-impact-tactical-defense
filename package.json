@@ -10,10 +10,14 @@
     "compile": "forge build --via-ir",
     "compile:hardhat": "hardhat compile",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network baseSepolia",
-    "deploy:mainnet": "hardhat run scripts/deploy.js --network base",
+    "deploy:mainnet": "node scripts/deploy-foundry.js",
+    "deploy:mainnet:hardhat": "hardhat run scripts/deploy.js --network base",
     "verify": "node scripts/verify.js",
     "create-owner-wallet": "node scripts/create-owner-wallet.js",
-    "check-readiness": "node scripts/check-deployment-readiness.js"
+    "check-readiness": "node scripts/check-deployment-readiness.js",
+    "configure-contracts": "node scripts/configure-contracts.js",
+    "bridge-eth": "node scripts/bridge-eth-l1-to-base.js",
+    "send-eth-to-deployer": "node scripts/send-eth-to-deployer.js"
   },
   "dependencies": {
     "@coinbase/cdp-sdk": "^1.40.1",

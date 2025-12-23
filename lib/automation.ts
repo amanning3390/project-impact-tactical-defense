@@ -66,3 +66,4 @@ export async function waitForVRFFulfillment(requestId: string, maxWaitTime = 600
   throw new Error("VRF fulfillment timeout");
 }
 
+

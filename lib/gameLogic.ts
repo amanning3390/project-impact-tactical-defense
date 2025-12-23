@@ -57,3 +57,4 @@ export function assignToBattery(playerIndex: number): number {
   return Math.floor(playerIndex / 10);
 }
 
+

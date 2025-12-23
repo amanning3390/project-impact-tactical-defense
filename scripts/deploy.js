@@ -11,10 +11,11 @@ async function main() {
   console.log("Network:", network.name, "Chain ID:", network.chainId);
 
   // Configuration from environment variables
-  const VRF_COORDINATOR = process.env.VRF_COORDINATOR || "";
-  const VRF_KEY_HASH = process.env.VRF_KEY_HASH || "";
-  const VRF_SUBSCRIPTION_ID = process.env.VRF_SUBSCRIPTION_ID || "0";
-  const DEV_WALLET = process.env.DEV_WALLET || deployer.address;
+  // Try both prefixed and non-prefixed versions
+  const VRF_COORDINATOR = process.env.VRF_COORDINATOR || process.env.NEXT_PUBLIC_CHAINLINK_VRF_COORDINATOR || "";
+  const VRF_KEY_HASH = process.env.VRF_KEY_HASH || process.env.NEXT_PUBLIC_CHAINLINK_VRF_KEY_HASH || "";
+  const VRF_SUBSCRIPTION_ID = process.env.VRF_SUBSCRIPTION_ID || process.env.NEXT_PUBLIC_CHAINLINK_VRF_SUBSCRIPTION_ID || "0";
+  const DEV_WALLET = process.env.DEV_WALLET || process.env.DEV_WALLET_ADDRESS || deployer.address;
   // Use CDP Server Wallet as owner if specified, otherwise use deployer
   const OWNER_WALLET = process.env.OWNER_WALLET_ADDRESS || deployer.address;
 
@@ -36,7 +37,14 @@ async function main() {
 
   // Step 1: Deploy ImpactToken
   console.log("\n=== Step 1: Deploying ImpactToken ===");
-  const ImpactToken = await ethers.getContractFactory("ImpactToken");
+  // Use Foundry artifacts if available, otherwise compile
+  let ImpactToken;
+  try {
+    const artifact = require("../out/ImpactToken.sol/ImpactToken.json");
+    ImpactToken = await ethers.getContractFactoryFromArtifact(artifact);
+  } catch (e) {
+    ImpactToken = await ethers.getContractFactory("ImpactToken");
+  }
   const impactToken = await ImpactToken.deploy(OWNER_WALLET);
   await impactToken.waitForDeployment();
   const impactTokenAddress = await impactToken.getAddress();
@@ -45,7 +53,13 @@ async function main() {
 
   // Step 2: Deploy BatteryContract
   console.log("\n=== Step 2: Deploying BatteryContract ===");
-  const BatteryContract = await ethers.getContractFactory("BatteryContract");
+  let BatteryContract;
+  try {
+    const artifact = require("../out/BatteryContract.sol/BatteryContract.json");
+    BatteryContract = await ethers.getContractFactoryFromArtifact(artifact);
+  } catch (e) {
+    BatteryContract = await ethers.getContractFactory("BatteryContract");
+  }
   const batteryContract = await BatteryContract.deploy();
   await batteryContract.waitForDeployment();
   const batteryContractAddress = await batteryContract.getAddress();
@@ -53,7 +67,13 @@ async function main() {
 
   // Step 3: Deploy GameContract
   console.log("\n=== Step 3: Deploying GameContract ===");
-  const GameContract = await ethers.getContractFactory("GameContract");
+  let GameContract;
+  try {
+    const artifact = require("../out/GameContract.sol/GameContract.json");
+    GameContract = await ethers.getContractFactoryFromArtifact(artifact);
+  } catch (e) {
+    GameContract = await ethers.getContractFactory("GameContract");
+  }
   const gameContract = await GameContract.deploy(
     VRF_COORDINATOR,
     VRF_KEY_HASH,

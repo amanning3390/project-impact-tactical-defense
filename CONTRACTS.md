@@ -50,3 +50,4 @@ Manages battery assignment (10 players per battery).
 4. Set GameContract in ImpactToken
 5. Configure Chainlink VRF subscription
 
+

@@ -61,7 +61,17 @@ See `DEPLOYMENT.md` for detailed deployment instructions.
 - `CONTRACTS.md` - Smart contract documentation
 - `API.md` - API/contract interaction documentation
 
+## Base Mini App Compliance (Base App)
+
+- Manifest: see `public/miniapp-manifest.json` (update `homeUrl`, assets, and accountAssociation fields before launch). Reference: https://docs.base.org/mini-apps/llms-full.txt
+- MiniKit wiring: `app/providers.tsx` enables `miniKit` inside `OnchainKitProvider` on Base chain with smart-wallet-only modal.
+- Auth UX: `app/page.tsx` + `components/GameViewport.tsx` defer authentication; guest mode is allowed until a launch is attempted, then `useAuthenticate` is invoked just-in-time. Context from `useMiniKit` is used for UI hints only.
+- Embedding/Security: `middleware.ts` allows Base/Farcaster frame embedding via CSP `frame-ancestors` while keeping `nosniff`, referrer, permissions, and `X-Robots-Tag: noindex`.
+- Server verification scaffold: `app/api/verify/route.ts` uses `verifySignedPayload` from `lib/security.ts` for signed payload checks.
+- Env vars: `NEXT_PUBLIC_ONCHAINKIT_API_KEY`, `NEXT_PUBLIC_WC_PROJECT_ID`, `NEXT_PUBLIC_PAYMASTER_URL`, `NEXT_PUBLIC_GAME_CONTRACT_ADDRESS`, `SERVER_WALLET_PRIVATE_KEY`, `CRON_SECRET`.
+
 ## License
 
 MIT
+
 

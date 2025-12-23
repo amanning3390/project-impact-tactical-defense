@@ -8,3 +8,4 @@ export const config = getDefaultConfig({
   walletConnectProjectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "",
 });
 
+

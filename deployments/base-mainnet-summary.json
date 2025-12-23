@@ -1,0 +1,21 @@
+{
+  "network": "base-mainnet",
+  "chainId": 8453,
+  "deployer": "0x47BFC09A934316d14e58cbdaDcd49CEeD7Bc5b05",
+  "owner": "0x6a1b085645674fF5E3eB853046cD51de16CAa1D0",
+  "contracts": {
+    "ImpactToken": "0x15EE34646b4daeF37680B278F2B0D0af838D3Bcb",
+    "BatteryContract": "0xDeD48e98A53e7AA61Fb86b15a5580630c8171c8C",
+    "GameContract": "0xa3AC5bf07B977FA86CF50f039F8C7955464c447f"
+  },
+  "timestamp": "2024-12-19T00:00:00.000Z",
+  "nextSteps": [
+    "Call setGameContract(0xa3AC5bf07B977FA86CF50f039F8C7955464c447f) on ImpactToken from owner wallet",
+    "Create Chainlink VRF subscription at https://vrf.chain.link/",
+    "Add GameContract as VRF consumer",
+    "Fund VRF subscription with LINK tokens"
+  ],
+  "vrfSubscriptionId": "113387684611112281376791464026201858348417527977429473709451546625058528679311",
+  "configured": true,
+  "configurationTimestamp": "2025-12-19T19:35:30.039Z"
+}

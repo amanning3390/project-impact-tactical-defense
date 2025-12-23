@@ -1,3 +1,5 @@
+import { verifyMessage } from "viem";
+
 export function validateCoordinates(x: number, y: number, z: number): boolean {
   return (
     Number.isInteger(x) &&
@@ -52,10 +54,47 @@ export function validateTransaction(transaction: {
     return false;
   }
 
-  if (transaction.value && transaction.value < 0n) {
+  if (
+    transaction.value !== undefined &&
+    transaction.value.toString().startsWith("-")
+  ) {
     return false;
   }
 
   return true;
 }
+
+/**
+ * Minimal signed-payload verification for Mini App server endpoints.
+ * Checks signature, optional expiration, and optional domain binding.
+ */
+export async function verifySignedPayload({
+  address,
+  message,
+  signature,
+  expectedDomain,
+  expiresAt,
+}: {
+  address: `0x${string}`;
+  message: string;
+  signature: `0x${string}`;
+  expectedDomain?: string;
+  expiresAt?: number;
+}): Promise<boolean> {
+  if (expiresAt && Date.now() > expiresAt) {
+    return false;
+  }
+
+  const signatureValid = await verifyMessage({ address, message, signature });
+  if (!signatureValid) {
+    return false;
+  }
+
+  if (expectedDomain && !message.includes(expectedDomain)) {
+    return false;
+  }
+
+  return true;
+}
+
 

@@ -1,0 +1,32 @@
+{
+  "accountAssociation": {
+    "header": "REPLACE_WITH_ACCOUNT_ASSOCIATION_HEADER",
+    "payload": "REPLACE_WITH_ACCOUNT_ASSOCIATION_PAYLOAD",
+    "signature": "REPLACE_WITH_ACCOUNT_ASSOCIATION_SIGNATURE"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Project Impact - Tactical Defense",
+    "homeUrl": "https://project-impact.example",
+    "iconUrl": "https://project-impact.example/icon.png",
+    "splashImageUrl": "https://project-impact.example/splash.png",
+    "splashBackgroundColor": "#000000",
+    "webhookUrl": "https://project-impact.example/api/webhook",
+    "subtitle": "Intercept the asteroid. Daily.",
+    "description": "Social-native, gasless mini game on Base. Pick coordinates, launch strikes, and defend the planet together.",
+    "screenshotUrls": [
+      "https://project-impact.example/screen-1.png",
+      "https://project-impact.example/screen-2.png",
+      "https://project-impact.example/screen-3.png"
+    ],
+    "primaryCategory": "gaming",
+    "tags": ["gaming", "social", "baseapp", "miniapp"],
+    "heroImageUrl": "https://project-impact.example/og.png",
+    "tagline": "Launch a strike in seconds.",
+    "ogTitle": "Project Impact - Tactical Defense",
+    "ogDescription": "Daily coordinate strikes with friends on Base.",
+    "ogImageUrl": "https://project-impact.example/og.png",
+    "noindex": true
+  }
+}
+

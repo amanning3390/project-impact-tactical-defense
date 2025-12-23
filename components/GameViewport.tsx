@@ -6,7 +6,17 @@ import { LaunchButton } from "./LaunchButton";
 import { BatteryDisplay } from "./BatteryDisplay";
 import { OutcomeAnimation } from "./OutcomeAnimation";
 
-export function GameViewport() {
+interface GameViewportProps {
+  isAuthenticated: boolean;
+  onRequireAuth: () => Promise<void>;
+  authPending: boolean;
+}
+
+export function GameViewport({
+  isAuthenticated,
+  onRequireAuth,
+  authPending,
+}: GameViewportProps) {
   const [coordinates, setCoordinates] = useState({ x: 5, y: 5, z: 5 });
   const [isLocked, setIsLocked] = useState(false);
   const [gameState, setGameState] = useState<"idle" | "locked" | "strike" | "outcome">("idle");
@@ -17,8 +27,13 @@ export function GameViewport() {
     }
   };
 
-  const handleLaunch = () => {
-    // TODO: Implement transaction submission
+  const handleLaunch = async () => {
+    if (!isAuthenticated) {
+      await onRequireAuth();
+      return;
+    }
+
+    // TODO: Implement transaction submission with MiniKit auth context
     setIsLocked(true);
     setGameState("locked");
   };
@@ -39,6 +54,12 @@ export function GameViewport() {
         </div>
       </div>
 
+      {!isAuthenticated ? (
+        <div className="rounded-lg border border-yellow-500/40 bg-yellow-500/10 p-4 text-sm text-yellow-200">
+          Guest mode active. We will ask for a quick sign-in only when you launch a strike.
+        </div>
+      ) : null}
+
       <CoordinateDials
         coordinates={coordinates}
         onChange={handleCoordinateChange}
@@ -47,7 +68,7 @@ export function GameViewport() {
 
       <LaunchButton
         onLaunch={handleLaunch}
-        isLocked={isLocked}
+        isLocked={isLocked || authPending}
         gameState={gameState}
       />
 
@@ -57,4 +78,5 @@ export function GameViewport() {
     </div>
   );
 }
+
 
