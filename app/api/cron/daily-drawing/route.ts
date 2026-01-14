@@ -27,15 +27,24 @@ export async function GET(request: NextRequest) {
       const result = await requestWinningCoordinates();
       
       // Wait for VRF fulfillment (typically 1-2 blocks)
-      if (result.requestId) {
-        await waitForVRFFulfillment(result.requestId);
+      const { getCurrentDay } = await import("@/lib/gameLogic");
+      const currentDay = getCurrentDay();
+      try {
+        const vrfResult = await waitForVRFFulfillment(currentDay);
+        return NextResponse.json({
+          success: true,
+          action: "requestWinningCoordinates",
+          result: { ...result, vrfResult },
+        });
+      } catch (vrfError) {
+        // VRF might take longer, return partial success
+        return NextResponse.json({
+          success: true,
+          action: "requestWinningCoordinates",
+          result,
+          warning: "VRF fulfillment pending",
+        });
       }
-      
-      return NextResponse.json({
-        success: true,
-        action: "requestWinningCoordinates",
-        result,
-      });
     } else if (hour === 23) {
       // 23:00 UTC - Reset Cycle
       const result = await resetDailyCycle();

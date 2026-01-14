@@ -5,6 +5,7 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useAuthenticate, useMiniKit } from "@coinbase/onchainkit/minikit";
 import { GameViewport } from "@/components/GameViewport";
 import { MiniAppWrapper } from "@/components/MiniAppWrapper";
+import { ToastProvider } from "@/components/NotificationToast";
 
 export default function Home() {
   const [isInMiniApp, setIsInMiniApp] = useState(false);
@@ -51,43 +52,57 @@ export default function Home() {
   };
 
   return (
-    <MiniAppWrapper isInMiniApp={isInMiniApp}>
-      <main className="flex min-h-screen flex-col items-center justify-center p-8">
-        <div className="w-full max-w-6xl space-y-6">
-          <header className="text-center space-y-2">
-            <p className="text-sm text-cyan-300 uppercase tracking-[0.2em]">
+    <ToastProvider>
+      <MiniAppWrapper isInMiniApp={isInMiniApp}>
+        <main className="flex min-h-screen flex-col items-center justify-center p-4 sm:p-8">
+        <div className="w-full max-w-6xl space-y-6 sm:space-y-8">
+          {/* Header */}
+          <header className="text-center space-y-3">
+            <p className="text-xs sm:text-sm text-primary uppercase tracking-[0.2em] font-mono">
               Mini App on Base
             </p>
-            <h1 className="text-4xl font-bold">Project Impact - Tactical Defense</h1>
-            <p className="text-gray-400">
-              Welcome, {displayName}. Optimized for {clientName}. Explore first; connect only
-              when launching a strike.
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold font-mono text-primary shadow-neon-cyan">
+              Project Impact
+            </h1>
+            <p className="text-lg sm:text-xl font-mono text-secondary">
+              Tactical Defense
+            </p>
+            <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto">
+              Welcome, <span className="text-primary">{displayName}</span>. Defend Earth by targeting the asteroid. 
+              {!isAuthenticated && " Connect when ready to launch."}
             </p>
           </header>
 
-          <section className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-lg border border-cyan-500/40 bg-black/40 p-4">
-              <div className="text-sm text-gray-300">Environment</div>
-              <div className="mt-1 text-lg font-semibold text-cyan-300">
-                {isInMiniApp ? "Running in Base Mini App" : "Browser preview"}
+          {/* Status Cards */}
+          <section className="grid gap-3 sm:gap-4 sm:grid-cols-2">
+            <div className="rounded-lg border border-primary/40 bg-black/40 backdrop-blur-sm p-4 transition-all hover:border-primary/60">
+              <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
+                <span>🌐</span>
+                <span>Environment</span>
               </div>
-              <p className="mt-2 text-xs text-gray-400">
-                Frame-safe layout with MiniKit context. No auth prompt until you launch.
+              <div className="text-base sm:text-lg font-semibold font-mono text-primary">
+                {isInMiniApp ? "Base Mini App" : "Browser"}
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
+                {isInMiniApp ? "Optimized for mobile" : "Desktop preview mode"}
               </p>
             </div>
-            <div className="rounded-lg border border-cyan-500/40 bg-black/40 p-4">
-              <div className="text-sm text-gray-300">Account</div>
-              <div className="mt-1 text-lg font-semibold text-cyan-300">
-                {isAuthenticated ? "Signed in" : "Guest mode"}
+            <div className="rounded-lg border border-primary/40 bg-black/40 backdrop-blur-sm p-4 transition-all hover:border-primary/60">
+              <div className="flex items-center gap-2 text-sm text-gray-300 mb-2">
+                <span>{isAuthenticated ? "🔓" : "🔒"}</span>
+                <span>Account</span>
               </div>
-              <p className="mt-2 text-xs text-gray-400">
+              <div className="text-base sm:text-lg font-semibold font-mono text-primary">
+                {isAuthenticated ? "Connected" : "Guest Mode"}
+              </div>
+              <p className="mt-2 text-xs text-gray-500">
                 {isAuthenticated
-                  ? "Using verified MiniKit identity for secure actions."
-                  : "Stay in guest mode until you launch a strike; then we’ll request identity just-in-time."}
+                  ? "Wallet connected for transactions"
+                  : "Connect on first launch"}
               </p>
-              {authError ? (
-                <p className="mt-2 text-xs text-red-400">Auth error: {authError}</p>
-              ) : null}
+              {authError && (
+                <p className="mt-2 text-xs text-error">Error: {authError}</p>
+              )}
             </div>
           </section>
 
@@ -97,8 +112,9 @@ export default function Home() {
             authPending={authPending}
           />
         </div>
-      </main>
-    </MiniAppWrapper>
+        </main>
+      </MiniAppWrapper>
+    </ToastProvider>
   );
 }
 

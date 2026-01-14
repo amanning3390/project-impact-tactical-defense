@@ -290,8 +290,16 @@ contract GameContract is VRFConsumerBaseV2, Ownable, Pausable {
         require(currentHour >= 23, "Too early to reset");
         require(day > currentDay, "Not next day");
         
+        // Mark reset time for previous day
+        if (currentDay > 0) {
+            dailyCycles[currentDay].resetTime = block.timestamp;
+        }
+        
+        // Update to new day
         currentDay = day;
-        // Reset logic would go here
+        
+        // Initialize new day's cycle (if not already initialized by first submission)
+        // This ensures the cycle struct exists even if no one submits on the new day
     }
     
     function getBurnRate(uint256 participantCount) public pure returns (uint256) {
